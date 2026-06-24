@@ -1,0 +1,8 @@
+.wrapper { width: 100%; }
+.label { display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem; }
+.input { width: 100%; padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 1rem; color: #111827; background: #fff; transition: border-color 0.15s, box-shadow 0.15s; outline: none; }
+.input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+.input.error { border-color: #ef4444; }
+.input.error:focus { box-shadow: 0 0 0 3px rgba(239,68,68,0.15); }
+.input:disabled { background: #f3f4f6; opacity: 0.7; cursor: not-allowed; }
+.errorText { margin-top: 0.25rem; font-size: 0.875rem; color: #dc2626; }
