@@ -1,0 +1,31 @@
+.spinner { display: flex; align-items: center; justify-content: center; padding: 5rem 0; }
+.spinnerCircle { width: 2.5rem; height: 2.5rem; border: 3px solid #e5e7eb; border-top-color: #2563eb; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.errorPage { padding: 2rem; text-align: center; }
+.errorIcon { font-size: 3rem; margin-bottom: 1rem; }
+.errorTitle { font-size: 1.125rem; font-weight: 500; color: #111827; }
+.backBtn { margin-top: 1rem; padding: 0.5rem 1rem; background: #2563eb; color: #fff; border: none; border-radius: 0.5rem; cursor: pointer; }
+.backBtn:hover { background: #1d4ed8; }
+.page { padding: 2rem; max-width: 42rem; }
+.navBack { display: flex; align-items: center; gap: 0.5rem; color: #4b5563; background: transparent; border: none; cursor: pointer; margin-bottom: 1.5rem; font-size: 0.875rem; }
+.navBack:hover { color: #111827; }
+.card { background: #fff; border-radius: 1rem; border: 1px solid #e5e7eb; padding: 2rem; }
+.docHeader { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
+.docIcon { font-size: 3rem; }
+.docMeta { flex: 1; }
+.docTitle { font-size: 1.25rem; font-weight: 700; color: #111827; }
+.badge { display: inline-flex; align-items: center; margin-top: 0.5rem; padding: 0.125rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
+.errorBox { margin-bottom: 1.5rem; padding: 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 0.5rem; }
+.errorText { font-size: 0.875rem; color: #dc2626; }
+.fields { display: flex; flex-direction: column; gap: 0; }
+.field { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #f3f4f6; }
+.field:last-child { border-bottom: none; }
+.fieldLabel { font-size: 0.875rem; color: #6b7280; }
+.fieldValue { font-size: 0.875rem; font-weight: 500; color: #111827; }
+.actions { margin-top: 1.5rem; display: flex; gap: 0.75rem; }
+.btnPrimary { flex: 1; padding: 0.5rem; background: #2563eb; color: #fff; border: none; border-radius: 0.5rem; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+.btnPrimary:hover { background: #1d4ed8; }
+.btnSecondary { flex: 1; padding: 0.5rem; background: #e5e7eb; color: #374151; border: none; border-radius: 0.5rem; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+.btnSecondary:hover { background: #d1d5db; }
+.btnPurple { flex: 1; padding: 0.5rem; background: #9333ea; color: #fff; border: none; border-radius: 0.5rem; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+.btnPurple:hover { background: #7e22ce; }
