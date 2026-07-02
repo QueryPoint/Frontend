@@ -9,7 +9,6 @@ const navItems = [
   { to: '/upload', label: 'Загрузка', icon: '⬆️' },
   { to: '/search', label: 'Поиск', icon: '🔍' },
   { to: '/assistant', label: 'ИИ-ассистент', icon: '🤖' },
-  { to: '/history', label: 'История', icon: '🕐' },
 ];
 
 export const Layout = () => {
