@@ -1,14 +1,15 @@
-import { api } from './api';
-import { type User } from '../types/auth';
+import { api } from '../api/client';
+import type { RegisterResponse } from '../types/auth';
 
-export interface LoginData { username: string; password: string; }
-export interface RegisterData { username: string; password: string; }
-export interface AuthResponse { user: User; }
+interface Credentials {
+  username: string;
+  password: string;
+}
 
 export const authService = {
-  me: () => api.get<User>('/auth/me'),
-  login: (data: LoginData) => api.post<AuthResponse>('/auth/login', data),
-  register: (data: RegisterData) => api.post<AuthResponse>('/auth/register', data),
+  login: (data: Credentials) => api.post<RegisterResponse>('/auth/login', data),
+  register: (data: Credentials) => api.post<RegisterResponse>('/auth/register', data),
   logout: () => api.post('/auth/logout'),
+  me: () => api.get<RegisterResponse['user']>('/auth/me'),
   refresh: () => api.post('/auth/refresh'),
 };
