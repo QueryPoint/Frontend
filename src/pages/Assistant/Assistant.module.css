@@ -41,3 +41,23 @@
 .sendBtn { padding: 0.75rem 1rem; background: #2563eb; color: #fff; border: none; border-radius: 0.75rem; cursor: pointer; font-size: 1rem; transition: background 0.15s; }
 .sendBtn:hover:not(:disabled) { background: #1d4ed8; }
 .sendBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.mascotIdle {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  display: inline-block;
+  animation: catWobble 1.6s ease-in-out infinite;
+}
+
+@keyframes catWobble {
+  0%, 100% { transform: rotate(-8deg); }
+  50% { transform: rotate(8deg); }
+}
+
+.mascotThinking {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  display: inline-block;
+}

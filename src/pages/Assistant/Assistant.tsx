@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth';
+import styles from './Assistant.module.css';
 
 interface Source {
   document_id: string;
@@ -25,6 +26,13 @@ const QUICK_PROMPTS = [
   'Кратко расскажи документ',
   'Составь вопросы для самопроверки',
 ];
+
+const WS_DOT_COLOR: Record<string, string> = {
+  connected: '#4ade80',
+  connecting: '#facc15',
+  reconnecting: '#facc15',
+  disconnected: '#f87171',
+};
 
 export const AssistantPage = () => {
   const [searchParams] = useSearchParams();
@@ -147,44 +155,42 @@ export const AssistantPage = () => {
     sendMessage(input);
   };
 
-  const wsStatusColor = {
-    connected: 'bg-green-400',
-    connecting: 'bg-yellow-400',
-    reconnecting: 'bg-yellow-400 animate-pulse',
-    disconnected: 'bg-red-400',
+  const wsStatusLabel = {
+    connected: 'Подключено',
+    connecting: 'Подключение...',
+    reconnecting: 'Переподключение...',
+    disconnected: 'Нет соединения',
   }[wsState];
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className={styles.page}>
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white flex-shrink-0">
+      <div className={styles.topBar}>
         <div>
-          <h1 className="text-lg font-bold text-gray-900">ИИ-ассистент</h1>
+          <h1 className={styles.topBarTitle}>ИИ-ассистент</h1>
           {documentId && (
-            <p className="text-xs text-gray-500">Режим документа</p>
+            <p className={styles.topBarDoc}>Режим документа</p>
           )}
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <div className={`w-2 h-2 rounded-full ${wsStatusColor}`}></div>
-          <span>
-            {wsState === 'connected' ? 'Подключено' : wsState === 'connecting' ? 'Подключение...' : wsState === 'reconnecting' ? 'Переподключение...' : 'Нет соединения'}
-          </span>
+        <div className={styles.wsStatus}>
+          <div className={styles.wsDot} style={{ background: WS_DOT_COLOR[wsState] }} />
+          <span>{wsStatusLabel}</span>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className={styles.messages}>
         {messages.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-5xl mb-4">🤖</p>
-            <h3 className="text-lg font-medium text-gray-900">Задайте вопрос ассистенту</h3>
-            <p className="text-gray-600 mt-2 mb-6">Ассистент отвечает на основе загруженных документов</p>
-            <div className="flex flex-wrap gap-2 justify-center">
+          <div className={styles.welcomeBox}>
+            <img src="/cat-idle.png" alt="Кот-ассистент" className={styles.mascotIdle} />
+            <h3 className={styles.welcomeTitle}>Задайте вопрос ассистенту</h3>
+            <p className={styles.welcomeText}>Ассистент отвечает на основе загруженных документов</p>
+            <div className={styles.quickPrompts}>
               {QUICK_PROMPTS.map((prompt) => (
                 <button
                   key={prompt}
                   onClick={() => sendMessage(prompt)}
-                  className="px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm hover:bg-blue-100 transition-colors"
+                  className={styles.quickBtn}
                 >
                   {prompt}
                 </button>
@@ -194,34 +200,26 @@ export const AssistantPage = () => {
         )}
 
         {messages.map((msg) => (
-          <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-2xl ${msg.role === 'user' ? 'order-2' : 'order-1'}`}>
-              <div
-                className={`rounded-2xl px-4 py-3 ${
-                  msg.role === 'user'
-                    ? 'bg-blue-600 text-white rounded-br-sm'
-                    : 'bg-white border border-gray-200 text-gray-900 rounded-bl-sm'
-                }`}
-              >
-                <p className="text-sm whitespace-pre-wrap leading-relaxed">
+          <div key={msg.id} className={`${styles.msgRow} ${msg.role === 'user' ? styles.msgRowUser : styles.msgRowAssistant}`}>
+            <div className={styles.msgBubble}>
+              <div className={`${styles.msgContent} ${msg.role === 'user' ? styles.msgContentUser : styles.msgContentAssistant}`}>
+                <p className={styles.msgText}>
                   {msg.content}
-                  {msg.isStreaming && (
-                    <span className="inline-block w-1 h-4 bg-current ml-1 animate-pulse" />
-                  )}
+                  {msg.isStreaming && <span className={styles.cursor} />}
                 </p>
               </div>
 
               {/* Sources */}
               {msg.sources && msg.sources.length > 0 && (
-                <div className="mt-2 space-y-1.5">
-                  <p className="text-xs text-gray-500 font-medium">Источники:</p>
+                <div className={styles.sources}>
+                  <p className={styles.sourcesLabel}>Источники:</p>
                   {msg.sources.map((source) => (
-                    <div key={source.chunk_id} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium text-gray-700">{source.file_name}</span>
-                        <span className="text-xs text-gray-400">Стр. {source.page}</span>
+                    <div key={source.chunk_id} className={styles.sourceCard}>
+                      <div className={styles.sourceHeader}>
+                        <span className={styles.sourceName}>{source.file_name}</span>
+                        <span className={styles.sourcePage}>Стр. {source.page}</span>
                       </div>
-                      <p className="text-xs text-gray-600 mt-1 line-clamp-2">{source.text}</p>
+                      <p className={styles.sourceText}>{source.text}</p>
                     </div>
                   ))}
                 </div>
@@ -231,13 +229,10 @@ export const AssistantPage = () => {
         ))}
 
         {assistantState === 'thinking' && (
-          <div className="flex justify-start">
-            <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3">
-              <div className="flex gap-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-              </div>
+          <div className={`${styles.msgRow} ${styles.msgRowAssistant}`}>
+            <div className={styles.thinkingBubble} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <img src="/cat-spin.gif" alt="Думает..." className={styles.mascotThinking} />
+              <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>ойиа ойиа ойиа...</span>
             </div>
           </div>
         )}
@@ -246,20 +241,20 @@ export const AssistantPage = () => {
       </div>
 
       {/* Input */}
-      <div className="flex-shrink-0 border-t border-gray-200 bg-white p-4">
-        <form onSubmit={handleSubmit} className="flex gap-3">
+      <div className={styles.inputArea}>
+        <form onSubmit={handleSubmit} className={styles.inputForm}>
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Напишите сообщение..."
             disabled={assistantState !== 'idle'}
-            className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-60"
+            className={styles.textInput}
           />
           <button
             type="submit"
             disabled={!input.trim() || assistantState !== 'idle'}
-            className="px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className={styles.sendBtn}
           >
             ➤
           </button>
