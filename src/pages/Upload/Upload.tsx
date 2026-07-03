@@ -3,6 +3,7 @@ import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 import { documentsService } from '../../services/documentsService';
 import { formatSize } from '../../utils/format';
+import styles from './Upload.module.css';
 
 type FileStatus = 'queued' | 'validating' | 'invalid' | 'uploading' | 'uploaded' | 'processing' | 'extracting_text' | 'indexing' | 'ready' | 'error';
 
@@ -16,16 +17,16 @@ interface FileItem {
 }
 
 const STATUS_LABELS: Record<FileStatus, { label: string; color: string }> = {
-  queued: { label: 'В очереди', color: 'text-gray-500' },
-  validating: { label: 'Проверка', color: 'text-blue-500' },
-  invalid: { label: 'Недопустимый файл', color: 'text-red-500' },
-  uploading: { label: 'Загрузка', color: 'text-blue-500' },
-  uploaded: { label: 'Загружен', color: 'text-blue-600' },
-  processing: { label: 'Обработка', color: 'text-yellow-600' },
-  extracting_text: { label: 'Извлечение текста', color: 'text-yellow-600' },
-  indexing: { label: 'Индексация', color: 'text-purple-600' },
-  ready: { label: 'Готов', color: 'text-green-600' },
-  error: { label: 'Ошибка', color: 'text-red-600' },
+  queued: { label: 'В очереди', color: '#6b7280' },
+  validating: { label: 'Проверка', color: '#3b82f6' },
+  invalid: { label: 'Недопустимый файл', color: '#dc2626' },
+  uploading: { label: 'Загрузка', color: '#3b82f6' },
+  uploaded: { label: 'Загружен', color: '#2563eb' },
+  processing: { label: 'Обработка', color: '#ca8a04' },
+  extracting_text: { label: 'Извлечение текста', color: '#ca8a04' },
+  indexing: { label: 'Индексация', color: '#9333ea' },
+  ready: { label: 'Готов', color: '#16a34a' },
+  error: { label: 'Ошибка', color: '#dc2626' },
 };
 
 const MAX_SIZE = Number(import.meta.env.VITE_MAX_UPLOAD_SIZE_MB || 20) * 1024 * 1024;
@@ -88,67 +89,59 @@ export const UploadPage = () => {
     maxSize: MAX_SIZE,
   });
 
-
   return (
-    <div className="p-8 max-w-2xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Загрузка документов</h1>
-        <p className="text-gray-600 mt-1">PDF и DOCX до 20 МБ</p>
+    <div className={styles.page}>
+      <div>
+        <h1 className={styles.title}>Загрузка документов</h1>
+        <p className={styles.subtitle}>PDF и DOCX до 20 МБ</p>
       </div>
 
       {/* Drop zone */}
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-colors ${
-          isDragActive ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
-        }`}
+        className={`${styles.dropzone} ${isDragActive ? styles.dropzoneActive : ''}`}
       >
         <input {...getInputProps()} />
-        <p className="text-5xl mb-4">📂</p>
-        <p className="text-lg font-medium text-gray-900">
+        <p className={styles.dropIcon}>📂</p>
+        <p className={styles.dropTitle}>
           {isDragActive ? 'Отпустите файлы' : 'Перетащите файлы сюда'}
         </p>
-        <p className="text-gray-500 mt-2">или нажмите для выбора</p>
-        <p className="text-sm text-gray-400 mt-3">PDF, DOCX — до 20 МБ каждый</p>
+        <p className={styles.dropSub}>или нажмите для выбора</p>
+        <p className={styles.dropHint}>PDF, DOCX — до 20 МБ каждый</p>
       </div>
 
       {/* File list */}
       {files.length > 0 && (
-        <div className="mt-6 space-y-3">
+        <div className={styles.fileList}>
           {files.map((item) => {
             const statusInfo = STATUS_LABELS[item.status];
             return (
-              <div key={item.id} className="bg-white rounded-xl border border-gray-200 p-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{item.file.name.endsWith('.pdf') ? '📕' : '📘'}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">{item.file.name}</p>
-                    <div className="flex items-center gap-3 mt-1">
-                      <span className="text-sm text-gray-500">{formatSize(item.file.size)}</span>
-                      <span className={`text-sm font-medium ${statusInfo.color}`}>
+              <div key={item.id} className={styles.fileCard}>
+                <div className={styles.fileRow}>
+                  <span className={styles.fileIcon}>{item.file.name.endsWith('.pdf') ? '📕' : '📘'}</span>
+                  <div className={styles.fileInfo}>
+                    <p className={styles.fileName}>{item.file.name}</p>
+                    <div className={styles.fileMeta}>
+                      <span className={styles.fileSize}>{formatSize(item.file.size)}</span>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 500, color: statusInfo.color }}>
                         {statusInfo.label}
                         {item.status === 'uploading' && ` ${item.progress}%`}
                       </span>
                     </div>
                   </div>
-                  {item.status === 'ready' && <span className="text-green-500 text-xl">✓</span>}
-                  {item.status === 'error' && <span className="text-red-500 text-xl">✗</span>}
-                  {item.status === 'uploading' && (
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                  )}
+                  {item.status === 'ready' && <span style={{ color: '#22c55e', fontSize: '1.25rem' }}>✓</span>}
+                  {item.status === 'error' && <span style={{ color: '#ef4444', fontSize: '1.25rem' }}>✗</span>}
+                  {item.status === 'uploading' && <div className={styles.spinnerSm}></div>}
                 </div>
 
                 {item.status === 'uploading' && (
-                  <div className="mt-3 w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-blue-600 transition-all duration-300"
-                      style={{ width: `${item.progress}%` }}
-                    />
+                  <div className={styles.progressBar}>
+                    <div className={styles.progressFill} style={{ width: `${item.progress}%` }} />
                   </div>
                 )}
 
                 {item.error && (
-                  <p className="mt-2 text-sm text-red-600">{item.error}</p>
+                  <p className={styles.fileError}>{item.error}</p>
                 )}
               </div>
             );

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { documentsService } from '../../services/documentsService';
 import { formatSize, formatDate } from '../../utils/format';
+import styles from './Documents.module.css';
 
 interface Document {
   id: string;
@@ -15,13 +16,13 @@ interface Document {
   error_message: string | null;
 }
 
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  uploaded: { label: 'Загружен', color: 'bg-blue-100 text-blue-700' },
-  processing: { label: 'Обработка', color: 'bg-yellow-100 text-yellow-700' },
-  extracting_text: { label: 'Извлечение текста', color: 'bg-yellow-100 text-yellow-700' },
-  indexing: { label: 'Индексация', color: 'bg-purple-100 text-purple-700' },
-  ready: { label: 'Готов', color: 'bg-green-100 text-green-700' },
-  error: { label: 'Ошибка', color: 'bg-red-100 text-red-700' },
+const STATUS_LABELS: Record<string, { label: string; bg: string; color: string }> = {
+  uploaded: { label: 'Загружен', bg: '#dbeafe', color: '#1d4ed8' },
+  processing: { label: 'Обработка', bg: '#fef9c3', color: '#a16207' },
+  extracting_text: { label: 'Извлечение текста', bg: '#fef9c3', color: '#a16207' },
+  indexing: { label: 'Индексация', bg: '#f3e8ff', color: '#7e22ce' },
+  ready: { label: 'Готов', bg: '#dcfce7', color: '#15803d' },
+  error: { label: 'Ошибка', bg: '#fee2e2', color: '#b91c1c' },
 };
 
 export const DocumentsPage = () => {
@@ -76,42 +77,36 @@ export const DocumentsPage = () => {
   };
 
   return (
-    <div className="p-8">
+    <div className={styles.page}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className={styles.header}>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Документы</h1>
-          <p className="text-gray-600 mt-1">Загруженные учебные материалы</p>
+          <h1 className={styles.headerTitle}>Документы</h1>
+          <p className={styles.headerSubtitle}>Загруженные учебные материалы</p>
         </div>
-        <Link
-          to="/upload"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-        >
+        <Link to="/upload" className={styles.uploadLink}>
           <span>⬆️</span>
           Загрузить документ
         </Link>
       </div>
 
       {/* Search */}
-      <form onSubmit={handleSearch} className="mb-6 flex gap-3">
+      <form onSubmit={handleSearch} className={styles.searchForm}>
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Поиск по названию..."
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className={styles.searchInput}
         />
-        <button
-          type="submit"
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
+        <button type="submit" className={styles.searchBtn}>
           Найти
         </button>
         {search && (
           <button
             type="button"
             onClick={() => { setSearch(''); fetchDocuments(); }}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+            className={styles.resetBtn}
           >
             Сбросить
           </button>
@@ -120,21 +115,18 @@ export const DocumentsPage = () => {
 
       {/* Loading */}
       {state === 'loading' && (
-        <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+        <div className={styles.spinner}>
+          <div className={styles.spinnerCircle}></div>
         </div>
       )}
 
       {/* Empty */}
       {state === 'empty' && (
-        <div className="text-center py-20">
-          <p className="text-5xl mb-4">📂</p>
-          <h3 className="text-lg font-medium text-gray-900">Нет документов</h3>
-          <p className="text-gray-600 mt-2">Загрузите первый документ в базу знаний</p>
-          <Link
-            to="/upload"
-            className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
+        <div className={styles.empty}>
+          <p className={styles.emptyIcon}>📂</p>
+          <h3 className={styles.emptyTitle}>Нет документов</h3>
+          <p className={styles.emptyText}>Загрузите первый документ в базу знаний</p>
+          <Link to="/upload" className={styles.emptyLink}>
             Загрузить документ
           </Link>
         </div>
@@ -142,13 +134,10 @@ export const DocumentsPage = () => {
 
       {/* Error */}
       {state === 'error' && (
-        <div className="text-center py-20">
-          <p className="text-5xl mb-4">⚠️</p>
-          <h3 className="text-lg font-medium text-gray-900">Ошибка загрузки</h3>
-          <button
-            onClick={() => fetchDocuments()}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
+        <div className={styles.empty}>
+          <p className={styles.emptyIcon}>⚠️</p>
+          <h3 className={styles.emptyTitle}>Ошибка загрузки</h3>
+          <button onClick={() => fetchDocuments()} className={styles.retryBtn}>
             Попробовать снова
           </button>
         </div>
@@ -156,61 +145,55 @@ export const DocumentsPage = () => {
 
       {/* Document list */}
       {state === 'success' && (
-        <div className="space-y-3">
+        <div className={styles.list}>
           {documents.map((doc) => {
-            const status = STATUS_LABELS[doc.status] || { label: doc.status, color: 'bg-gray-100 text-gray-700' };
+            const status = STATUS_LABELS[doc.status] || { label: doc.status, bg: '#f3f4f6', color: '#374151' };
             return (
-              <div
-                key={doc.id}
-                className="bg-white rounded-xl border border-gray-200 p-5 flex items-center gap-4 hover:border-blue-200 transition-colors"
-              >
+              <div key={doc.id} className={styles.docCard}>
                 {/* Icon */}
-                <div className="text-3xl flex-shrink-0">
+                <div className={styles.docIcon}>
                   {doc.file_type === 'pdf' ? '📕' : '📘'}
                 </div>
 
                 {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <h3
-                      className="font-medium text-gray-900 truncate cursor-pointer hover:text-blue-600"
-                      onClick={() => navigate(`/documents/${doc.id}`)}
-                    >
+                <div className={styles.docInfo}>
+                  <div className={styles.docNameRow}>
+                    <h3 className={styles.docName} onClick={() => navigate(`/documents/${doc.id}`)}>
                       {doc.file_name}
                     </h3>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${status.color}`}>
+                    <span className={styles.badge} style={{ background: status.bg, color: status.color }}>
                       {status.label}
                     </span>
                   </div>
-                  <div className="mt-1 flex items-center gap-4 text-sm text-gray-500 flex-wrap">
+                  <div className={styles.docMeta}>
                     <span>{doc.file_type.toUpperCase()}</span>
                     <span>{formatSize(doc.size)}</span>
                     <span>{formatDate(doc.created_at)}</span>
                   </div>
                   {doc.error_message && (
-                    <p className="mt-1 text-sm text-red-600">{doc.error_message}</p>
+                    <p className={styles.docError}>{doc.error_message}</p>
                   )}
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className={styles.docActions}>
                   <button
                     onClick={() => navigate(`/documents/${doc.id}`)}
-                    className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    className={styles.actionBtn}
                     title="Детали"
                   >
                     🔎
                   </button>
                   <button
                     onClick={() => handleDownload(doc)}
-                    className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                    className={`${styles.actionBtn} ${styles.actionBtnSuccess}`}
                     title="Скачать"
                   >
                     ⬇️
                   </button>
                   <button
                     onClick={() => setDeleteConfirm(doc.id)}
-                    className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className={`${styles.actionBtn} ${styles.actionBtnDanger}`}
                     title="Удалить"
                   >
                     🗑️
@@ -224,21 +207,15 @@ export const DocumentsPage = () => {
 
       {/* Delete confirm modal */}
       {deleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
-            <h3 className="text-lg font-bold text-gray-900">Удалить документ?</h3>
-            <p className="mt-2 text-gray-600">Это действие нельзя отменить. Документ будет удален из базы знаний.</p>
-            <div className="mt-4 flex gap-3">
-              <button
-                onClick={() => handleDelete(deleteConfirm)}
-                className="flex-1 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
-              >
+        <div className={styles.modal}>
+          <div className={styles.modalCard}>
+            <h3 className={styles.modalTitle}>Удалить документ?</h3>
+            <p className={styles.modalText}>Это действие нельзя отменить. Документ будет удален из базы знаний.</p>
+            <div className={styles.modalActions}>
+              <button onClick={() => handleDelete(deleteConfirm)} className={styles.deleteBtn}>
                 Удалить
               </button>
-              <button
-                onClick={() => setDeleteConfirm(null)}
-                className="flex-1 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-              >
+              <button onClick={() => setDeleteConfirm(null)} className={styles.cancelBtn}>
                 Отмена
               </button>
             </div>

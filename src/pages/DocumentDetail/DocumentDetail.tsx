@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { documentsService } from '../../services/documentsService';
 import { formatSize, formatDate } from '../../utils/format';
+import styles from './DocumentDetail.module.css';
 
 interface DocumentDetail {
   id: string;
@@ -17,13 +18,13 @@ interface DocumentDetail {
   error_message: string | null;
 }
 
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  uploaded: { label: 'Загружен', color: 'bg-blue-100 text-blue-700' },
-  processing: { label: 'Обработка', color: 'bg-yellow-100 text-yellow-700' },
-  extracting_text: { label: 'Извлечение текста', color: 'bg-yellow-100 text-yellow-700' },
-  indexing: { label: 'Индексация', color: 'bg-purple-100 text-purple-700' },
-  ready: { label: 'Готов', color: 'bg-green-100 text-green-700' },
-  error: { label: 'Ошибка', color: 'bg-red-100 text-red-700' },
+const STATUS_LABELS: Record<string, { label: string; bg: string; color: string }> = {
+  uploaded: { label: 'Загружен', bg: '#dbeafe', color: '#1d4ed8' },
+  processing: { label: 'Обработка', bg: '#fef9c3', color: '#a16207' },
+  extracting_text: { label: 'Извлечение текста', bg: '#fef9c3', color: '#a16207' },
+  indexing: { label: 'Индексация', bg: '#f3e8ff', color: '#7e22ce' },
+  ready: { label: 'Готов', bg: '#dcfce7', color: '#15803d' },
+  error: { label: 'Ошибка', bg: '#fee2e2', color: '#b91c1c' },
 };
 
 export const DocumentDetailPage = () => {
@@ -63,50 +64,50 @@ export const DocumentDetailPage = () => {
 
   if (state === 'loading') {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+      <div className={styles.spinner}>
+        <div className={styles.spinnerCircle}></div>
       </div>
     );
   }
 
   if (state === 'error' || !doc) {
     return (
-      <div className="p-8 text-center">
-        <p className="text-5xl mb-4">⚠️</p>
-        <h3 className="text-lg font-medium text-gray-900">Документ не найден</h3>
-        <button onClick={() => navigate('/documents')} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+      <div className={styles.errorPage}>
+        <p className={styles.errorIcon}>⚠️</p>
+        <h3 className={styles.errorTitle}>Документ не найден</h3>
+        <button onClick={() => navigate('/documents')} className={styles.backBtn}>
           Назад к документам
         </button>
       </div>
     );
   }
 
-  const status = STATUS_LABELS[doc.status] || { label: doc.status, color: 'bg-gray-100 text-gray-700' };
+  const status = STATUS_LABELS[doc.status] || { label: doc.status, bg: '#f3f4f6', color: '#374151' };
 
   return (
-    <div className="p-8 max-w-2xl">
-      <button onClick={() => navigate('/documents')} className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6">
+    <div className={styles.page}>
+      <button onClick={() => navigate('/documents')} className={styles.navBack}>
         ← Назад
       </button>
 
-      <div className="bg-white rounded-2xl border border-gray-200 p-8">
-        <div className="flex items-start gap-4 mb-6">
-          <div className="text-5xl">{doc.file_type === 'pdf' ? '📕' : '📘'}</div>
-          <div className="flex-1">
-            <h1 className="text-xl font-bold text-gray-900">{doc.file_name}</h1>
-            <span className={`inline-flex items-center mt-2 px-2.5 py-0.5 rounded-full text-xs font-medium ${status.color}`}>
+      <div className={styles.card}>
+        <div className={styles.docHeader}>
+          <div className={styles.docIcon}>{doc.file_type === 'pdf' ? '📕' : '📘'}</div>
+          <div className={styles.docMeta}>
+            <h1 className={styles.docTitle}>{doc.file_name}</h1>
+            <span className={styles.badge} style={{ background: status.bg, color: status.color }}>
               {status.label}
             </span>
           </div>
         </div>
 
         {doc.error_message && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-600">{doc.error_message}</p>
+          <div className={styles.errorBox}>
+            <p className={styles.errorText}>{doc.error_message}</p>
           </div>
         )}
 
-        <dl className="space-y-3">
+        <dl className={styles.fields}>
           {([
             ['Тип файла', doc.file_type.toUpperCase()],
             ['Размер', formatSize(doc.size)],
@@ -115,30 +116,21 @@ export const DocumentDetailPage = () => {
             doc.pages_count !== undefined ? ['Страниц', doc.pages_count] : null,
             doc.chunks_count !== undefined ? ['Фрагментов', doc.chunks_count] : null,
           ] as ([string, string | number] | null)[]).filter((x): x is [string, string | number] => x !== null).map(([label, value]) => (
-            <div key={String(label)} className="flex justify-between py-2 border-b border-gray-100 last:border-0">
-              <dt className="text-sm text-gray-500">{label}</dt>
-              <dd className="text-sm font-medium text-gray-900">{value}</dd>
+            <div key={String(label)} className={styles.field}>
+              <dt className={styles.fieldLabel}>{label}</dt>
+              <dd className={styles.fieldValue}>{value}</dd>
             </div>
           ))}
         </dl>
 
-        <div className="mt-6 flex gap-3">
-          <button
-            onClick={() => handleDownload('inline')}
-            className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-          >
+        <div className={styles.actions}>
+          <button onClick={() => handleDownload('inline')} className={styles.btnPrimary}>
             Открыть
           </button>
-          <button
-            onClick={() => handleDownload('attachment')}
-            className="flex-1 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-          >
+          <button onClick={() => handleDownload('attachment')} className={styles.btnSecondary}>
             Скачать
           </button>
-          <button
-            onClick={() => navigate(`/assistant?document_id=${doc.id}`)}
-            className="flex-1 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
-          >
+          <button onClick={() => navigate(`/assistant?document_id=${doc.id}`)} className={styles.btnPurple}>
             Спросить ИИ
           </button>
         </div>
