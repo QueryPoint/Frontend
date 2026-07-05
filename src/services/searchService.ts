@@ -1,10 +1,9 @@
 import { api } from '../api/client';
 
 export const searchService = {
-  search: (q: string, page: number, limit = 10) =>
-    api.get('/search', { params: { q, page, limit } }),
+  search: (q: string) => api.get('/search', { params: { q } }),
 
-  history: (limit = 50) => api.get('/search/history', { params: { limit } }),
-
-  clearHistory: () => api.delete('/search/history'),
+  // GET /history не реализован backend'ом (guideline описывает только DELETE) -
+  // список истории во frontend недоступен, оставлена только очистка.
+  clearHistory: () => api.delete('/history'),
 };
