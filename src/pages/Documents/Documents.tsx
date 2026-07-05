@@ -1,20 +1,23 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { documentsService } from '../../services/documentsService';
-import { formatSize, formatDate } from '../../utils/format';
+import { documentsService, type DocumentDTO } from '../../services/documentsService';
 import styles from './Documents.module.css';
 
-interface Document {
-  id: string;
-  file_name: string;
-  file_type: 'pdf' | 'docx';
-  size: number;
-  status: string;
-  security_status: string;
-  created_at: string;
-  updated_at: string;
-  error_message: string | null;
-}
+const formatSize = (bytes: number): string => {
+  if (bytes < 1024) return `${bytes} Б`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} КБ`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} МБ`;
+};
+
+const formatDate = (iso: string, options?: Intl.DateTimeFormatOptions): string =>
+  new Date(iso).toLocaleDateString('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    ...options,
+  });
 
 const STATUS_LABELS: Record<string, { label: string; bg: string; color: string }> = {
   uploaded: { label: 'Загружен', bg: '#dbeafe', color: '#1d4ed8' },
@@ -26,7 +29,7 @@ const STATUS_LABELS: Record<string, { label: string; bg: string; color: string }
 };
 
 export const DocumentsPage = () => {
-  const [documents, setDocuments] = useState<Document[]>([]);
+  const [documents, setDocuments] = useState<DocumentDTO[]>([]);
   const [state, setState] = useState<'loading' | 'success' | 'empty' | 'error'>('loading');
   const [search, setSearch] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -35,8 +38,7 @@ export const DocumentsPage = () => {
   const fetchDocuments = async (q?: string) => {
     setState('loading');
     try {
-      const res = await documentsService.list(q);
-      const items = res.data.items || [];
+      const items = await documentsService.list(q);
       setDocuments(items);
       setState(items.length === 0 ? 'empty' : 'success');
     } catch (err) {
@@ -54,10 +56,11 @@ export const DocumentsPage = () => {
     fetchDocuments(search);
   };
 
-  const handleDownload = async (doc: Document) => {
+  const handleDownload = async (doc: DocumentDTO) => {
     try {
-      const res = await documentsService.downloadUrl(doc.id, 'attachment');
-      window.open(res.data.url, '_blank');
+      const detail = await documentsService.get(doc.id);
+      if (!detail.download_url) throw new Error('No download url');
+      window.open(detail.download_url, '_blank');
     } catch (err) {
       console.error('Failed to get download url', err);
       alert('Не удалось получить ссылку на скачивание');

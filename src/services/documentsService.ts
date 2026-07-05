@@ -1,19 +1,45 @@
 import { api, apiUtils } from '../api/client';
 
+export interface DocumentDTO {
+  id: string;
+  file_name: string;
+  file_type: string;
+  size: number;
+  status: string;
+  security_status: string;
+  created_at: string;
+  updated_at: string;
+  error_message: string | null;
+  download_url?: string;
+  [key: string]: unknown;
+}
+
+function normalizeDocument(raw: any): DocumentDTO {
+  return {
+    ...raw,
+    id: raw.doc_id,
+    file_name: raw.doc_name,
+    file_type: raw.doc_type,
+    size: raw.doc_size,
+    download_url: raw.doc_downloadlink,
+  };
+}
+
 export const documentsService = {
-  list: (q?: string) => {
-    const params: Record<string, string> = { limit: '50' };
+  list: async (q?: string): Promise<DocumentDTO[]> => {
+    const params: Record<string, string> = {};
     if (q) params.q = q;
-    return api.get('/documents', { params });
+    const res = await api.get('/documents', { params });
+    return (res.data as unknown[]).map(normalizeDocument);
   },
 
-  get: (id: string) => api.get(`/documents/${id}`),
+  get: async (id: string): Promise<DocumentDTO> => {
+    const res = await api.get(`/documents/${id}`);
+    return normalizeDocument(res.data.data);
+  },
 
   delete: (id: string) => api.delete(`/documents/${id}`),
 
-  downloadUrl: (id: string, disposition: 'attachment' | 'inline' = 'attachment') =>
-    api.get(`/documents/${id}/download-url`, { params: { disposition } }),
-
-  upload: (files: File[], onProgress?: (percent: number) => void) =>
-    apiUtils.upload('/documents/upload', files, onProgress),
+  upload: (file: File, onProgress?: (percent: number) => void) =>
+    apiUtils.upload('/documents/upload', file, onProgress),
 };

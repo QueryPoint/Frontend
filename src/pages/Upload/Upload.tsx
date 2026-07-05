@@ -2,8 +2,13 @@ import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 import { documentsService } from '../../services/documentsService';
-import { formatSize } from '../../utils/format';
 import styles from './Upload.module.css';
+
+const formatSize = (bytes: number): string => {
+  if (bytes < 1024) return `${bytes} Б`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} КБ`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} МБ`;
+};
 
 type FileStatus = 'queued' | 'validating' | 'invalid' | 'uploading' | 'uploaded' | 'processing' | 'extracting_text' | 'indexing' | 'ready' | 'error';
 
@@ -57,11 +62,10 @@ export const UploadPage = () => {
 
     updateFile(item.id, { status: 'uploading', progress: 0 });
     try {
-      const res = await documentsService.upload([item.file], (p) => {
+      const res = await documentsService.upload(item.file, (p) => {
         updateFile(item.id, { progress: p });
       });
-      const doc = res.data.items?.[0];
-      updateFile(item.id, { status: 'uploaded', docId: doc?.id, progress: 100 });
+      updateFile(item.id, { status: 'uploaded', docId: res.data.doc_id, progress: 100 });
     } catch (err: unknown) {
       console.error('Upload failed', err);
       const msg = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
