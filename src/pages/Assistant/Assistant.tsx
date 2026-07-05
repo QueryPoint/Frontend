@@ -49,7 +49,7 @@ export const AssistantPage = () => {
   const isMountedRef = useRef(true);
 
   const wsUrl = import.meta.env.VITE_WS_URL
-    || `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/api/ws`;
+    || `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/api/v1/ws`;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -66,36 +66,34 @@ export const AssistantPage = () => {
 
     ws.onopen = () => setWsState('connected');
 
+    // ВНИМАНИЕ: формат сообщений backend'а (тип "think" и структура payload из очереди
+    // LLM) не полностью описан в сверке путей backend/frontend — обработчик ниже сделан
+    // по best-effort предположению и требует сверки с разделом WebSocket в guideline.
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
-      if (data.type === 'assistant.started') {
-        sessionIdRef.current = data.session_id;
-        setAssistantState('streaming');
-        setMessages((prev) => [
-          ...prev,
-          { id: data.message_id, role: 'assistant', content: '', isStreaming: true },
-        ]);
-      } else if (data.type === 'assistant.delta') {
+      if (data.type !== 'think') return;
+
+      const messageId = data.message_id ?? sessionIdRef.current ?? 'current';
+      const chunk = data.payload ?? data.message ?? '';
+
+      setMessages((prev) => {
+        const existing = prev.find((m) => m.id === messageId && m.isStreaming);
+        if (existing) {
+          return prev.map((m) =>
+            m.id === messageId ? { ...m, content: m.content + chunk } : m
+          );
+        }
+        return [...prev, { id: messageId, role: 'assistant', content: chunk, isStreaming: !data.done }];
+      });
+
+      if (data.done) {
         setMessages((prev) =>
-          prev.map((m) =>
-            m.id === data.message_id ? { ...m, content: m.content + data.delta } : m
-          )
-        );
-      } else if (data.type === 'assistant.done') {
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === data.message_id ? { ...m, isStreaming: false, sources: data.sources } : m
-          )
+          prev.map((m) => (m.id === messageId ? { ...m, isStreaming: false, sources: data.sources } : m))
         );
         setAssistantState('idle');
-      } else if (data.type === 'assistant.error') {
-        setMessages((prev) => [
-          ...prev,
-          { id: Date.now().toString(), role: 'assistant', content: data.message || 'Произошла ошибка' },
-        ]);
-        setAssistantState('error');
-        setTimeout(() => setAssistantState('idle'), 2000);
+      } else {
+        setAssistantState('streaming');
       }
     };
 
@@ -138,10 +136,9 @@ export const AssistantPage = () => {
     setAssistantState('sending');
 
     wsRef.current.send(JSON.stringify({
-      type: 'assistant.message',
-      session_id: sessionIdRef.current,
-      message: text,
-      document_id: documentId || null,
+      type: 'prompt',
+      prompt: text,
+      doc: documentId || null,
     }));
 
     setInput('');
