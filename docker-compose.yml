@@ -1,0 +1,12 @@
+services:
+  front:
+    build: .
+    container_name: querypoint_front
+    restart: unless-stopped
+    networks:
+      - querypoint
+
+networks:
+  querypoint:
+    external: true
+    name: querypoint_network
