@@ -9,7 +9,7 @@ import { useAuth } from '../../hooks/useAuth';
 import styles from './Register.module.css';
 
 const registerSchema = z.object({
-  username: z.string().min(3, 'Username от 3 до 32 символов').max(32).regex(/^[a-zA-Z0-9_]+$/, 'Только латиница, цифры и _'),
+  username: z.string().min(3, 'Username от 3 до 25 символов').max(25).regex(/^[a-zA-Z0-9_]+$/, 'Только латиница, цифры и _'),
   password: z.string().min(6, 'Пароль минимум 6 символов'),
   repeatPassword: z.string().min(6),
 }).refine((d) => d.password === d.repeatPassword, { message: 'Пароли не совпадают', path: ['repeatPassword'] });
@@ -84,7 +84,7 @@ export const RegisterPage = () => {
           <p className={styles.footerText}>Уже есть аккаунт?{' '}<Link to="/login" className={styles.footerLink}>Войти</Link></p>
         </div>
         <div className={styles.rules}>
-          <p className={styles.ruleText}><strong>Username:</strong> только латиница, цифры и _, от 3 до 32 символов</p>
+          <p className={styles.ruleText}><strong>Username:</strong> только латиница, цифры и _, от 3 до 25 символов</p>
           <p className={styles.ruleTextMt}><strong>Пароль:</strong> минимум 6 символов</p>
         </div>
       </div>

@@ -22,11 +22,17 @@ export const useAuth = () => {
     setFormState('submitting');
     setError(null);
     try {
-      const response = await authService.register({
+      await authService.register({
         username: data.username,
         password: data.password,
       });
-      setUser(response.data.user);
+      // Backend не выставляет cookie на регистрации — логинимся сразу после неё.
+      await authService.login({
+        username: data.username,
+        password: data.password,
+      });
+      const me = await authService.me();
+      setUser(me.data);
       setFormState('success');
       navigate('/documents');
     } catch (err: unknown) {
@@ -54,8 +60,9 @@ export const useAuth = () => {
     setFormState('submitting');
     setError(null);
     try {
-      const response = await authService.login(data);
-      setUser(response.data.user);
+      await authService.login(data);
+      const me = await authService.me();
+      setUser(me.data);
       setFormState('success');
       navigate('/documents');
     } catch (err: unknown) {

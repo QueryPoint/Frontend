@@ -10,8 +10,9 @@ export interface RegisterFormData {
   repeatPassword: string;
 }
 
-export interface RegisterResponse {
-  user: User;
+export interface AuthResponse {
+  user_id: string;
+  username: string;
 }
 
 export type AuthState = 'unknown' | 'authenticated' | 'unauthenticated' | 'refreshing';
