@@ -1,4 +1,4 @@
-import { api } from '../services/api';
+import { api, apiUtils } from './api';
 
 export interface DocumentDTO {
   id: string;

@@ -1,4 +1,4 @@
-import { api } from '../services/api';
+import { api } from './api';
 import type { AuthResponse, User } from '../types/auth';
 
 interface Credentials {
