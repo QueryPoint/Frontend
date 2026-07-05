@@ -1,4 +1,4 @@
-import { api } from '../api/client';
+import { api } from '../services/api';
 
 export const searchService = {
   search: (q: string) => api.get('/search', { params: { q } }),
