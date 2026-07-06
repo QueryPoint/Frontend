@@ -20,7 +20,7 @@ export const LoginPage = () => {
   const { register, handleSubmit, formState: { errors, isValid } } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema), mode: 'onChange',
   });
-  const onSubmit = async (data: LoginForm) => { try { await login(data); } catch {} };
+  const onSubmit = async (data: LoginForm) => { try { await login(data); } catch { /* error state is exposed via useAuth */ } };
 
   return (
     <div className={styles.page}>
