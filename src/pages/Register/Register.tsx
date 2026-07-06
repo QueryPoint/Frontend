@@ -42,8 +42,9 @@ export const RegisterPage = () => {
 
   const onSubmit = async (data: RegisterForm) => {
     try { await registerUser(data); }
-    catch (err: any) {
-      if (err.response?.data?.code === 'USER_ALREADY_EXISTS')
+    catch (err: unknown) {
+      const apiErr = err as { response?: { data?: { code?: string } } };
+      if (apiErr.response?.data?.code === 'USER_ALREADY_EXISTS')
         setFormError('username', { type: 'manual', message: 'Пользователь с таким именем уже существует' });
     }
   };

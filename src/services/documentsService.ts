@@ -14,7 +14,8 @@ export interface DocumentDTO {
   [key: string]: unknown;
 }
 
-function normalizeDocument(raw: any): DocumentDTO {
+function normalizeDocument(rawInput: unknown): DocumentDTO {
+  const raw = rawInput as Record<string, unknown>;
   return {
     ...raw,
     id: raw.doc_id,
@@ -22,7 +23,7 @@ function normalizeDocument(raw: any): DocumentDTO {
     file_type: raw.doc_type,
     size: raw.doc_size,
     download_url: raw.doc_downloadlink,
-  };
+  } as DocumentDTO;
 }
 
 export const documentsService = {
