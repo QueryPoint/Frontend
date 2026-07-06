@@ -3,6 +3,8 @@ services:
     build: .
     container_name: querypoint_front
     restart: unless-stopped
+    ports:
+      - "3000:80"
     networks:
       - querypoint
 
