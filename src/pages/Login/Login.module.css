@@ -1,0 +1,14 @@
+.page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%); padding: 1rem; }
+.card { width: 100%; max-width: 28rem; background: #fff; border-radius: 1rem; box-shadow: 0 20px 60px rgba(0,0,0,0.1); padding: 2rem; }
+.header { text-align: center; margin-bottom: 2rem; }
+.title { font-size: 1.875rem; font-weight: 700; color: #111827; }
+.subtitle { color: #4b5563; margin-top: 0.5rem; }
+.form { display: flex; flex-direction: column; gap: 1.25rem; }
+.showPasswordBtn { background: none; border: none; color: #2563eb; font-size: 0.875rem; cursor: pointer; margin-top: 0.25rem; padding: 0; }
+.showPasswordBtn:hover { color: #1d4ed8; }
+.errorBox { padding: 0.75rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 0.5rem; }
+.errorText { font-size: 0.875rem; color: #dc2626; }
+.footer { margin-top: 1.5rem; text-align: center; }
+.footerText { font-size: 0.875rem; color: #4b5563; }
+.footerLink { color: #2563eb; font-weight: 500; text-decoration: none; }
+.footerLink:hover { color: #1d4ed8; }
