@@ -21,3 +21,33 @@
 .fileError { margin-top: 0.5rem; font-size: 0.875rem; color: #dc2626; }
 .spinnerSm { width: 1.25rem; height: 1.25rem; border: 2px solid #e5e7eb; border-top-color: #2563eb; border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* --- responsive: tablet (768px) --- */
+@media (max-width: 768px) {
+  .page {
+    padding: 1.5rem 1rem;
+  }
+
+  .dropzone {
+    padding: 2rem 1rem;
+  }
+}
+
+/* --- responsive: mobile (480px and below, incl. 320px) --- */
+@media (max-width: 480px) {
+  .page {
+    padding: 1rem;
+  }
+
+  .dropzone {
+    padding: 1.5rem 0.75rem;
+  }
+
+  .fileRow {
+    flex-wrap: wrap;
+  }
+
+  .fileMeta {
+    flex-wrap: wrap;
+  }
+}

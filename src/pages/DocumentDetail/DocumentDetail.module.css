@@ -29,3 +29,41 @@
 .btnSecondary:hover { background: #d1d5db; }
 .btnPurple { flex: 1; padding: 0.5rem; background: #9333ea; color: #fff; border: none; border-radius: 0.5rem; font-weight: 500; cursor: pointer; transition: background 0.15s; }
 .btnPurple:hover { background: #7e22ce; }
+
+/* --- responsive: tablet (768px) --- */
+@media (max-width: 768px) {
+  .page {
+    padding: 1.5rem 1rem;
+  }
+
+  .card {
+    padding: 1.5rem;
+  }
+}
+
+/* --- responsive: mobile (480px and below, incl. 320px) --- */
+@media (max-width: 480px) {
+  .page {
+    padding: 1rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .docHeader {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  .field {
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+}

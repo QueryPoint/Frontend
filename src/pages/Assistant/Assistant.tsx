@@ -34,15 +34,25 @@ const WS_DOT_COLOR: Record<string, string> = {
   disconnected: '#f87171',
 };
 
+const chatStorageKey = (userId: string | undefined) => `assistant_chat_${userId ?? 'anon'}`;
+
+const loadStoredMessages = (userId: string | undefined): Message[] => {
+  try {
+    const raw = localStorage.getItem(chatStorageKey(userId));
+    return raw ? (JSON.parse(raw) as Message[]) : [];
+  } catch {
+    return [];
+  }
+};
+
 export const AssistantPage = () => {
   const [searchParams] = useSearchParams();
   const documentId = searchParams.get('document_id');
-  const { state: authState } = useAuthStore();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const { state: authState, user } = useAuthStore();
+  const [messages, setMessages] = useState<Message[]>(() => loadStoredMessages(user?.id));
   const [input, setInput] = useState('');
   const [assistantState, setAssistantState] = useState<'idle' | 'sending' | 'thinking' | 'streaming' | 'error'>('idle');
   const [wsState, setWsState] = useState<'connecting' | 'connected' | 'reconnecting' | 'disconnected'>('disconnected');
-  const sessionIdRef = useRef<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const reconnectTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -57,6 +67,10 @@ export const AssistantPage = () => {
 
   useEffect(() => { scrollToBottom(); }, [messages]);
 
+  useEffect(() => {
+    localStorage.setItem(chatStorageKey(user?.id), JSON.stringify(messages));
+  }, [messages, user?.id]);
+
   const connectWS = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
@@ -66,34 +80,42 @@ export const AssistantPage = () => {
 
     ws.onopen = () => setWsState('connected');
 
-    // ВНИМАНИЕ: формат сообщений backend'а (тип "think" и структура payload из очереди
-    // LLM) не полностью описан в сверке путей backend/frontend — обработчик ниже сделан
-    // по best-effort предположению и требует сверки с разделом WebSocket в guideline.
+    // Реальный контракт backend'а (см. LLM/src/assistant_service/messaging/contracts.py):
+    // "think" — короткий статус прогресса (не кусок текста ответа, не стримится по частям);
+    // "response" — единственное сообщение с готовым полным ответом ({type, data, warning});
+    // "error" — ошибка уровня WS-роутера backend'а (например "Prompt already processing")
+    // или предупреждение об исчерпанном контексте (warning >= 100 в ResponseEvent).
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
-      if (data.type !== 'think') return;
+      if (data.type === 'think') {
+        setAssistantState('thinking');
+        return;
+      }
 
-      const messageId = data.message_id ?? sessionIdRef.current ?? 'current';
-      const chunk = data.payload ?? data.message ?? '';
-
-      setMessages((prev) => {
-        const existing = prev.find((m) => m.id === messageId && m.isStreaming);
-        if (existing) {
-          return prev.map((m) =>
-            m.id === messageId ? { ...m, content: m.content + chunk } : m
-          );
-        }
-        return [...prev, { id: messageId, role: 'assistant', content: chunk, isStreaming: !data.done }];
-      });
-
-      if (data.done) {
-        setMessages((prev) =>
-          prev.map((m) => (m.id === messageId ? { ...m, isStreaming: false, sources: data.sources } : m))
-        );
+      if (data.type === 'response') {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            role: 'assistant',
+            content: data.data ?? '',
+          },
+        ]);
         setAssistantState('idle');
-      } else {
-        setAssistantState('streaming');
+        return;
+      }
+
+      if (data.type === 'error') {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            role: 'assistant',
+            content: data.data ?? 'Произошла ошибка.',
+          },
+        ]);
+        setAssistantState('idle');
       }
     };
 
@@ -154,6 +176,15 @@ export const AssistantPage = () => {
     sendMessage(input);
   };
 
+  const clearChat = () => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: 'delete' }));
+    }
+    setMessages([]);
+    setAssistantState('idle');
+    localStorage.removeItem(chatStorageKey(user?.id));
+  };
+
   const wsStatusLabel = {
     connected: 'Подключено',
     connecting: 'Подключение...',
@@ -174,6 +205,11 @@ export const AssistantPage = () => {
         <div className={styles.wsStatus}>
           <div className={styles.wsDot} style={{ background: WS_DOT_COLOR[wsState] }} />
           <span>{wsStatusLabel}</span>
+          {messages.length > 0 && (
+            <button type="button" onClick={clearChat} className={styles.clearChatBtn} title="Очистить чат">
+              🗑️ Очистить чат
+            </button>
+          )}
         </div>
       </div>
 
