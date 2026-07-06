@@ -11,3 +11,31 @@
 .fieldValue { font-size: 0.875rem; font-weight: 500; color: #111827; }
 .logoutBtn { width: 100%; padding: 0.75rem; background: #dc2626; color: #fff; border: none; border-radius: 0.75rem; font-weight: 500; cursor: pointer; font-size: 1rem; transition: background 0.15s; }
 .logoutBtn:hover { background: #b91c1c; }
+
+/* --- responsive: tablet (768px) --- */
+@media (max-width: 768px) {
+  .page {
+    padding: 1.5rem 1rem;
+  }
+}
+
+/* --- responsive: mobile (480px and below, incl. 320px) --- */
+@media (max-width: 480px) {
+  .page {
+    padding: 1rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .userHeader {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .field {
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+}
