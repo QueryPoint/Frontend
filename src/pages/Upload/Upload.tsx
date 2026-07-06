@@ -65,7 +65,11 @@ export const UploadPage = () => {
       const res = await documentsService.upload(item.file, (p) => {
         updateFile(item.id, { progress: p });
       });
-      updateFile(item.id, { status: 'uploaded', docId: res.data.doc_id, progress: 100 });
+      // Backend извлекает текст и индексирует документ синхронно в рамках этого
+      // запроса, поэтому к моменту ответа индексация уже завершена — коротко
+      // показываем шаг перед финальным статусом, а не оставляем "Загружен" навсегда.
+      updateFile(item.id, { status: 'indexing', docId: res.data.doc_id, progress: 100 });
+      setTimeout(() => updateFile(item.id, { status: 'ready' }), 500);
     } catch (err: unknown) {
       console.error('Upload failed', err);
       const msg = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
