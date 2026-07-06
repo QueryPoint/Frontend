@@ -101,6 +101,7 @@ export const AssistantPage = () => {
       if (!isMountedRef.current) return;
       setWsState('reconnecting');
       reconnectTimeout.current = setTimeout(() => {
+        // eslint-disable-next-line react-hooks/immutability -- connectWS is stable via useCallback([wsUrl])
         if (isMountedRef.current) connectWS();
       }, 3000);
     };
@@ -128,6 +129,7 @@ export const AssistantPage = () => {
     }
 
     const userMsg: Message = {
+      // eslint-disable-next-line react-hooks/purity -- id only needs to be unique per user action, not pure
       id: Date.now().toString(),
       role: 'user',
       content: text,

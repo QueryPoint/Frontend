@@ -36,6 +36,7 @@ export const DocumentDetailPage = () => {
 
   useEffect(() => {
     if (!documentId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- guard clause, not a data-driven update
       setState('error');
       return;
     }
