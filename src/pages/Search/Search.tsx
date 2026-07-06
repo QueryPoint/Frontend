@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { searchService } from '../../services/searchService';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import DOMPurify from 'dompurify';
+import { searchService, SEARCH_PAGE_SIZE } from '../../services/searchService';
 import styles from './Search.module.css';
 
 interface SearchResult {
@@ -10,24 +11,58 @@ interface SearchResult {
   score: number;
 }
 
+const sanitizeHighlight = (text: string): string =>
+  DOMPurify.sanitize(text, { ALLOWED_TAGS: ['mark'], ALLOWED_ATTR: [] });
+
 export const SearchPage = () => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [state, setState] = useState<'idle' | 'loading' | 'success' | 'empty' | 'error'>('idle');
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
-  const search = async (q: string) => {
-    if (!q.trim()) return;
-    setState('loading');
+  const fetchPage = async (q: string, offset: number, replace: boolean) => {
+    if (replace) {
+      setState('loading');
+    } else {
+      setLoadingMore(true);
+    }
     try {
-      const res = await searchService.search(q);
+      const res = await searchService.search(q, offset);
       const items: SearchResult[] = res.data || [];
-      setResults(items);
-      setState(items.length === 0 ? 'empty' : 'success');
+      setResults((prev) => (replace ? items : [...prev, ...items]));
+      setHasMore(items.length === SEARCH_PAGE_SIZE);
+      if (replace) {
+        setState(items.length === 0 ? 'empty' : 'success');
+      }
     } catch (err) {
       console.error('Search failed', err);
-      setState('error');
+      if (replace) setState('error');
+    } finally {
+      setLoadingMore(false);
     }
   };
+
+  const search = (q: string) => {
+    if (!q.trim()) return;
+    fetchPage(q, 0, true);
+  };
+
+  const loadMore = useCallback(() => {
+    if (!hasMore || loadingMore || state !== 'success') return;
+    fetchPage(query, results.length, false);
+  }, [hasMore, loadingMore, state, query, results.length]);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) loadMore();
+    });
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [loadMore]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,8 +124,8 @@ export const SearchPage = () => {
 
       {state === 'success' && (
         <div className={styles.results}>
-          {results.map((result) => (
-            <div key={result.chunk_id} className={styles.card}>
+          {results.map((result, index) => (
+            <div key={`${result.chunk_id}-${index}`} className={styles.card}>
               <div className={styles.cardBody}>
                 <div className={styles.cardMain}>
                   <div className={styles.cardMeta}>
@@ -98,11 +133,20 @@ export const SearchPage = () => {
                     <span className={styles.pageNum}>Стр. {result.page_number}</span>
                     <span className={styles.score}>{result.score.toFixed(2)}</span>
                   </div>
-                  <p className={styles.snippet}>{result.text}</p>
+                  <p
+                    className={styles.snippet}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHighlight(result.text) }}
+                  />
                 </div>
               </div>
             </div>
           ))}
+
+          {hasMore && (
+            <div ref={sentinelRef} className={styles.loadMoreSentinel}>
+              {loadingMore && <div className={styles.spinner}></div>}
+            </div>
+          )}
         </div>
       )}
     </div>
